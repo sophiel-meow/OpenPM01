@@ -197,8 +197,8 @@ void ui_draw(void) {
             draw_ch(arrow_x, arrow_y, arrow, ifg, ibg);
             int curr_y = SEC_CURR_Y + SEC_CURR_H - 43 - 2;
             fmt3(nbuf, g_current_a < 0 ? -g_current_a : g_current_a);
-            draw_val_unit(nbuf, ifg, ibg, &CaskaydiaCoveNF_36, "A", C_UNIT,
-                          C_BG, &CaskaydiaCoveNF_18, curr_y);
+            draw_val_unit(nbuf, ifg, ibg, &CaskaydiaCoveNF_36, "A", C_UNIT, ibg,
+                          &CaskaydiaCoveNF_18, curr_y);
         } else {
             int dash_w = str_width("---", &CaskaydiaCoveNF_36);
             st_draw_string_withbg(RIGHT_X - dash_w,
