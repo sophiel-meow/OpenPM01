@@ -1,6 +1,7 @@
 .pio/
 
 .cache/
+releases/
 
 compile_commands.json
 
