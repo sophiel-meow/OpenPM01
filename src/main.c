@@ -19,6 +19,7 @@ int main(void) {
 
     uint32_t last_ina = sys_ticks;
     uint32_t last_sht = sys_ticks;
+    uint32_t last_bat = sys_ticks;
     uint32_t last_ui = sys_ticks;
 
     while ("meow") {
@@ -35,6 +36,13 @@ int main(void) {
         }
 
         sensors_sht30_poll();
+
+#ifndef NO_BATTERY
+        if (now - last_bat >= BATTERY_PERIOD_MS) {
+            last_bat = now;
+            ui_battery_update();
+        }
+#endif
 
         if (now - last_ui >= UI_PERIOD_MS) {
             last_ui = now;

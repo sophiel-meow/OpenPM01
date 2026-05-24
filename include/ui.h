@@ -4,5 +4,6 @@
 
 void ui_init(void);
 void ui_draw(void);
+void ui_battery_update(void);
 
 #endif

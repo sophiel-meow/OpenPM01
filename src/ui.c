@@ -1,5 +1,13 @@
 #include "ui.h"
 
+#ifndef NO_BATTERY
+static int g_bat_pct = -1;
+static int g_prev_bat_pct = -1;
+static bool g_prev_bat_lo;
+
+void ui_battery_update(void) { g_bat_pct = battery_pct(g_bus_v); }
+#endif
+
 static const tChar *g_arrow_up, *g_arrow_dn;
 
 // format number
@@ -155,13 +163,13 @@ void ui_init(void) {
 #define RIGHT_X (171 - 4)
 
 #define SEC_VOLT_Y 0
-#define SEC_VOLT_H 78
+#define SEC_VOLT_H 74
 #define SEC_CURR_Y (SEC_VOLT_Y + SEC_VOLT_H)
-#define SEC_CURR_H 78
+#define SEC_CURR_H 74
 #define SEC_PWR_Y (SEC_CURR_Y + SEC_CURR_H)
 #define SEC_PWR_H 64
 #define SEC_CHARGE_Y (SEC_PWR_Y + SEC_PWR_H)
-#define SEC_CHARGE_H 50
+#define SEC_CHARGE_H 58
 #define SEC_TH_Y (SEC_CHARGE_Y + SEC_CHARGE_H)
 #define SEC_TH_H 48
 
@@ -270,11 +278,36 @@ void ui_draw(void) {
         st_fill_rect(STRIPE_X, SEC_CHARGE_Y, STRIPE_W, SEC_CHARGE_H, C_CHARGE);
         st_draw_string_withbg(MARGIN_L, SEC_CHARGE_Y + 2, "CHARGE", C_LABEL,
                               C_BG, &CaskaydiaCoveNF_18);
+#ifndef NO_BATTERY
+        {
+            bool lo = (g_bus_v < BAT_LO_V);
+            if (lo != g_prev_bat_lo) {
+                int lw = str_width("LO BATT", &CaskaydiaCoveNF_18);
+                int lh = CaskaydiaCoveNF_18.chars[0].char_height;
+                st_fill_rect(RIGHT_X - lw, SEC_CHARGE_Y + 2, lw, lh, C_BG);
+                if (lo)
+                    st_draw_string_withbg(RIGHT_X - lw, SEC_CHARGE_Y + 2,
+                                          "LO BATT", C_ALERT, C_BG,
+                                          &CaskaydiaCoveNF_18);
+                g_prev_bat_lo = lo;
+            }
+        }
+#endif
         int chgy = SEC_CHARGE_Y + SEC_CHARGE_H - 32 + 1;
+#ifndef NO_BATTERY
+        chgy -= BAT_BAR_H + BAT_GAP; /* lift value to make room for bar */
+#endif
         bool mah = (g_coulomb_mah < 1000.0f && g_coulomb_mah > -1000.0f);
         if (mah != g_prev_mah) {
-            st_fill_rect(STRIPE_W, chgy, 172 - STRIPE_W, 32, C_BG);
+            int clr_h = 32;
+#ifndef NO_BATTERY
+            clr_h += BAT_BAR_H + BAT_GAP;
+#endif
+            st_fill_rect(STRIPE_W, chgy, 172 - STRIPE_W, clr_h, C_BG);
             g_prev_mah = mah;
+#ifndef NO_BATTERY
+            g_prev_bat_pct = -1;
+#endif
         }
         if (mah) {
             fmt2(nbuf, g_coulomb_mah);
@@ -285,6 +318,19 @@ void ui_draw(void) {
             draw_val_unit(nbuf, C_CHARGE, C_BG, &CaskaydiaCoveNF_26, "Ah",
                           C_CHARGE, C_BG, &CaskaydiaCoveNF_18, chgy);
         }
+#ifndef NO_BATTERY
+        {
+            if (g_bat_pct != g_prev_bat_pct) {
+                g_prev_bat_pct = g_bat_pct;
+                int bar_y = chgy + 32 + BAT_GAP;
+                int bar_w = RIGHT_X - MARGIN_L;
+                st_fill_rect(MARGIN_L, bar_y, bar_w, BAT_BAR_H, CAT_SURFACE0);
+                int fw = (bar_w * g_bat_pct + 50) / 100;
+                if (fw > 0)
+                    st_fill_rect(MARGIN_L, bar_y, fw, BAT_BAR_H, C_CHARGE);
+            }
+        }
+#endif
     }
 
     // temp & humid
@@ -481,23 +527,64 @@ void ui_draw(void) {
         st_fill_rect(LS_COL_R, LS_ROW2_Y, LS_STRIPE_W, LS_ROW2_H, C_CHARGE);
         st_draw_string_withbg(LS_COL_R + LS_MARGIN_L, LS_ROW2_Y + 2, "CHARGE",
                               C_LABEL, C_BG, &CaskaydiaCoveNF_18);
+#ifndef NO_BATTERY
+        {
+            bool lo = (g_bus_v < BAT_LO_V);
+            if (lo != g_prev_bat_lo) {
+                int lw = str_width("LO BATT", &CaskaydiaCoveNF_18);
+                int lh = CaskaydiaCoveNF_18.chars[0].char_height;
+                st_fill_rect(LS_RIGHT_R - lw, LS_ROW2_Y + 2, lw, lh, C_BG);
+                if (lo)
+                    st_draw_string_withbg(LS_RIGHT_R - lw, LS_ROW2_Y + 2,
+                                          "LO BATT", C_ALERT, C_BG,
+                                          &CaskaydiaCoveNF_18);
+                g_prev_bat_lo = lo;
+            }
+        }
+#endif
+        int chg_vy = LS_R2_CHG_VY;
+#ifndef NO_BATTERY
+        chg_vy -= BAT_BAR_H + BAT_GAP;
+#endif
         bool mah = (g_coulomb_mah < 1000.0f && g_coulomb_mah > -1000.0f);
         if (mah != g_prev_mah) {
-            st_fill_rect(LS_COL_R + LS_STRIPE_W, LS_R2_CHG_VY,
-                         LS_COL_W - LS_STRIPE_W, 32, C_BG);
+            int clr_h = 32;
+#ifndef NO_BATTERY
+            clr_h += BAT_BAR_H + BAT_GAP;
+#endif
+            st_fill_rect(LS_COL_R + LS_STRIPE_W, chg_vy, LS_COL_W - LS_STRIPE_W,
+                         clr_h, C_BG);
             g_prev_mah = mah;
+#ifndef NO_BATTERY
+            g_prev_bat_pct = -1;
+#endif
         }
         if (mah) {
             fmt2(nbuf, g_coulomb_mah);
             draw_val_unit_at(nbuf, C_UNIT, C_BG, &CaskaydiaCoveNF_26, "mAh",
-                             C_UNIT, C_BG, &CaskaydiaCoveNF_18, LS_R2_CHG_VY,
+                             C_UNIT, C_BG, &CaskaydiaCoveNF_18, chg_vy,
                              LS_RIGHT_R);
         } else {
             fmt2(nbuf, g_coulomb_mah / 1000.0f);
             draw_val_unit_at(nbuf, C_CHARGE, C_BG, &CaskaydiaCoveNF_26, "Ah",
-                             C_CHARGE, C_BG, &CaskaydiaCoveNF_18, LS_R2_CHG_VY,
+                             C_CHARGE, C_BG, &CaskaydiaCoveNF_18, chg_vy,
                              LS_RIGHT_R);
         }
+#ifndef NO_BATTERY
+        {
+            if (g_bat_pct != g_prev_bat_pct) {
+                g_prev_bat_pct = g_bat_pct;
+                int bar_y = chg_vy + 32 + BAT_GAP;
+                int bar_w = LS_RIGHT_R - (LS_COL_R + LS_MARGIN_L);
+                st_fill_rect(LS_COL_R + LS_MARGIN_L, bar_y, bar_w, BAT_BAR_H,
+                             CAT_SURFACE0);
+                int fw = (bar_w * g_bat_pct + 50) / 100;
+                if (fw > 0)
+                    st_fill_rect(LS_COL_R + LS_MARGIN_L, bar_y, fw, BAT_BAR_H,
+                                 C_CHARGE);
+            }
+        }
+#endif
     }
 
     // temp & humid
