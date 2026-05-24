@@ -227,7 +227,7 @@ void ui_draw(void) {
 
         int lbl_w = str_width("CURR", &CaskaydiaCoveNF_18);
         int arrow_x = MARGIN_L + lbl_w + 6;
-        int arrow_y = SEC_CURR_Y;
+        int arrow_y = SEC_CURR_Y - 4;
 
         if (g_current_valid != g_prev_valid) {
             st_fill_rect(arrow_x, arrow_y, 172 - arrow_x,
@@ -473,7 +473,7 @@ void ui_draw(void) {
 
         int lbl_w = str_width("CURR", &CaskaydiaCoveNF_18);
         int arrow_x = LS_COL_R + LS_MARGIN_L + lbl_w + 6;
-        int arrow_y = LS_ROW1_Y;
+        int arrow_y = LS_ROW1_Y - 4;
 
         if (g_current_valid != g_prev_valid) {
             st_fill_rect(arrow_x, arrow_y, LS_COL_R + LS_COL_W - arrow_x,
