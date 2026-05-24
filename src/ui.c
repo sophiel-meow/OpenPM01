@@ -476,7 +476,7 @@ void ui_draw(void) {
         int arrow_y = LS_ROW1_Y - 4;
 
         if (g_current_valid != g_prev_valid) {
-            st_fill_rect(arrow_x, arrow_y, LS_COL_R + LS_COL_W - arrow_x,
+            st_fill_rect(arrow_x, 0, LS_COL_R + LS_COL_W - arrow_x,
                          g_arrow_up->char_height, ibg);
             st_fill_rect(LS_COL_R + LS_STRIPE_W, LS_R1_VY,
                          LS_COL_W - LS_STRIPE_W, 43, ibg);
