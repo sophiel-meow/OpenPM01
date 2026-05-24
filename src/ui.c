@@ -175,15 +175,15 @@ void ui_draw(void) {
         if (va && blink) {
             if (blink != g_prev_blink)
                 draw_alert_msg(STRIPE_W, vy, 172 - STRIPE_W, 43,
-                               g_bus_v < ALERT_VOLTAGE_LOW ? "LOW VOLT"
-                                                           : "HIGH VOLT",
+                               g_bus_v < ALERT_VOLTAGE_LOW ? "LOW VOLT."
+                                                           : "HIGH VOLT.",
                                C_ALERT, ALERT_FONT);
         } else {
             if (va && blink != g_prev_blink)
                 st_fill_rect(STRIPE_W, vy, 172 - STRIPE_W, 43, vbg);
             fmt2(nbuf, g_bus_v);
-            draw_val_unit(nbuf, vfg, vbg, &CaskaydiaCoveNF_36, "V", C_UNIT, vbg,
-                          &CaskaydiaCoveNF_18, vy);
+            draw_val_unit(nbuf, vfg, vbg, &CaskaydiaCoveNF_36, "V",
+                          va ? vfg : C_UNIT, vbg, &CaskaydiaCoveNF_18, vy);
         }
 
         // curr
@@ -219,15 +219,15 @@ void ui_draw(void) {
         if (ia && blink) {
             if (blink != g_prev_blink)
                 draw_alert_msg(STRIPE_W, curr_y, 172 - STRIPE_W, 43,
-                               "OVER CURR", C_ALERT, ALERT_FONT);
+                               "OVER CURR.", C_ALERT, ALERT_FONT);
         } else if (g_current_valid) {
             if (ia && blink != g_prev_blink)
                 st_fill_rect(STRIPE_W, curr_y, 172 - STRIPE_W, 43, ibg);
             const tChar *arrow = pos ? g_arrow_dn : g_arrow_up;
             draw_ch(arrow_x, arrow_y, arrow, ifg, ibg);
             fmt3(nbuf, g_current_a < 0 ? -g_current_a : g_current_a);
-            draw_val_unit(nbuf, ifg, ibg, &CaskaydiaCoveNF_36, "A", C_UNIT, ibg,
-                          &CaskaydiaCoveNF_18, curr_y);
+            draw_val_unit(nbuf, ifg, ibg, &CaskaydiaCoveNF_36, "A",
+                          ia ? ifg : C_UNIT, ibg, &CaskaydiaCoveNF_18, curr_y);
         } else {
             int dash_w = str_width("---", &CaskaydiaCoveNF_36);
             st_draw_string_withbg(RIGHT_X - dash_w, curr_y, "---", C_LABEL, ibg,
@@ -285,8 +285,8 @@ void ui_draw(void) {
         if (ta && blink) {
             if (blink != g_prev_blink)
                 draw_alert_msg(STRIPE_W, SEC_TH_Y, 172 - STRIPE_W, SEC_TH_H,
-                               g_temp_c > ALERT_TEMP_HIGH ? "HIGH TEMP"
-                                                          : "LOW TEMP",
+                               g_temp_c > ALERT_TEMP_HIGH ? "HIGH TEMP."
+                                                          : "LOW TEMP.",
                                C_ALERT, ALERT_FONT);
         } else {
             if (ta && blink != g_prev_blink)
