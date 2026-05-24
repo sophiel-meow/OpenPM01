@@ -135,9 +135,27 @@ void ui_init(void) {
 
 static bool g_prev_va, g_prev_ia, g_prev_ta, g_prev_valid;
 static bool g_prev_mah = true;
+static int g_prev_blink = -1;
+
+#define ALERT_BLINK_MS 2000
+#define ALERT_FONT (&CaskaydiaCoveNF_26)
+
+/* Returns true during the "show alert message" phase of the blink cycle */
+static inline bool alert_show_msg(void) {
+    return ((sys_ticks / ALERT_BLINK_MS) & 1);
+}
+
+static void draw_alert_msg(int x, int y, int w, int h, const char *msg,
+                           uint16_t bg, const tFont *f) {
+    int mw = str_width(msg, f);
+    int my = y + (h - f->chars[0].char_height) / 2;
+    st_fill_rect(x, y, w, h, bg);
+    st_draw_string_withbg(x + (w - mw) / 2, my, (char *)msg, C_ALERT_FG, bg, f);
+}
 
 void ui_draw(void) {
     char nbuf[16];
+    int blink = alert_show_msg();
 
     if (g_ina_ok) {
         // volt
@@ -150,14 +168,23 @@ void ui_draw(void) {
             st_fill_rect(STRIPE_W, SEC_VOLT_Y, 172 - STRIPE_W, SEC_VOLT_H, vbg);
             g_prev_va = va;
         }
-        char *vlbl =
-            va ? (g_bus_v < ALERT_VOLTAGE_LOW ? "VOLT LO" : "VOLT HI") : "VOLT";
-        st_draw_string_withbg(MARGIN_L, SEC_VOLT_Y + 2, vlbl, C_LABEL, vbg,
+        st_draw_string_withbg(MARGIN_L, SEC_VOLT_Y + 2, "VOLT", C_LABEL, vbg,
                               &CaskaydiaCoveNF_18);
-        fmt2(nbuf, g_bus_v);
+
         int vy = SEC_VOLT_Y + SEC_VOLT_H - 43 - 2;
-        draw_val_unit(nbuf, vfg, vbg, &CaskaydiaCoveNF_36, "V", C_UNIT, vbg,
-                      &CaskaydiaCoveNF_18, vy);
+        if (va && blink) {
+            if (blink != g_prev_blink)
+                draw_alert_msg(STRIPE_W, vy, 172 - STRIPE_W, 43,
+                               g_bus_v < ALERT_VOLTAGE_LOW ? "LOW VOLT"
+                                                           : "HIGH VOLT",
+                               C_ALERT, ALERT_FONT);
+        } else {
+            if (va && blink != g_prev_blink)
+                st_fill_rect(STRIPE_W, vy, 172 - STRIPE_W, 43, vbg);
+            fmt2(nbuf, g_bus_v);
+            draw_val_unit(nbuf, vfg, vbg, &CaskaydiaCoveNF_36, "V", C_UNIT, vbg,
+                          &CaskaydiaCoveNF_18, vy);
+        }
 
         // curr
         bool ia = (g_current_a > ALERT_CURRENT_MAX ||
@@ -171,40 +198,40 @@ void ui_draw(void) {
             st_fill_rect(STRIPE_W, SEC_CURR_Y, 172 - STRIPE_W, SEC_CURR_H, ibg);
             g_prev_ia = ia;
         }
-        char *clbl = ia ? "CURR OC" : "CURR";
-        st_draw_string_withbg(MARGIN_L, SEC_CURR_Y + 2, clbl, C_LABEL, ibg,
+        st_draw_string_withbg(MARGIN_L, SEC_CURR_Y + 2, "CURR", C_LABEL, ibg,
                               &CaskaydiaCoveNF_18);
 
-        int lbl_w = str_width(clbl, &CaskaydiaCoveNF_18);
-
+        int lbl_w = str_width("CURR", &CaskaydiaCoveNF_18);
         int arrow_x = MARGIN_L + lbl_w + 6;
         int arrow_y = SEC_CURR_Y;
 
         if (g_current_valid != g_prev_valid) {
-            // arrow area
             st_fill_rect(arrow_x, arrow_y, 172 - arrow_x,
                          g_arrow_up->char_height, ibg);
-            // current value row
             int val_y = SEC_CURR_Y + SEC_CURR_H - 43 - 2;
             st_fill_rect(STRIPE_W, val_y, 172 - STRIPE_W, 43, ibg);
-            // power vaule row
             int pwry = SEC_PWR_Y + SEC_PWR_H - 43 - 2;
             st_fill_rect(STRIPE_W, pwry, 172 - STRIPE_W, 43, C_BG);
             g_prev_valid = g_current_valid;
         }
 
-        if (g_current_valid) {
+        int curr_y = SEC_CURR_Y + SEC_CURR_H - 43 - 2;
+        if (ia && blink) {
+            if (blink != g_prev_blink)
+                draw_alert_msg(STRIPE_W, curr_y, 172 - STRIPE_W, 43,
+                               "OVER CURR", C_ALERT, ALERT_FONT);
+        } else if (g_current_valid) {
+            if (ia && blink != g_prev_blink)
+                st_fill_rect(STRIPE_W, curr_y, 172 - STRIPE_W, 43, ibg);
             const tChar *arrow = pos ? g_arrow_dn : g_arrow_up;
             draw_ch(arrow_x, arrow_y, arrow, ifg, ibg);
-            int curr_y = SEC_CURR_Y + SEC_CURR_H - 43 - 2;
             fmt3(nbuf, g_current_a < 0 ? -g_current_a : g_current_a);
             draw_val_unit(nbuf, ifg, ibg, &CaskaydiaCoveNF_36, "A", C_UNIT, ibg,
                           &CaskaydiaCoveNF_18, curr_y);
         } else {
             int dash_w = str_width("---", &CaskaydiaCoveNF_36);
-            st_draw_string_withbg(RIGHT_X - dash_w,
-                                  SEC_CURR_Y + SEC_CURR_H - 43 - 2, "---",
-                                  C_LABEL, ibg, &CaskaydiaCoveNF_36);
+            st_draw_string_withbg(RIGHT_X - dash_w, curr_y, "---", C_LABEL, ibg,
+                                  &CaskaydiaCoveNF_36);
         }
 
         // pwr
@@ -255,28 +282,37 @@ void ui_draw(void) {
             st_fill_rect(STRIPE_W, SEC_TH_Y, 172 - STRIPE_W, SEC_TH_H, tbg);
             g_prev_ta = ta;
         }
-        char *tlbl =
-            ta ? (g_temp_c > ALERT_TEMP_HIGH ? "TEMP HI" : "TEMP LO") : "TEMP";
-        st_draw_string_withbg(MARGIN_L, SEC_TH_Y + 2, tlbl, C_LABEL, tbg,
-                              &CaskaydiaCoveNF_18);
-        st_draw_string_withbg(90, SEC_TH_Y + 2, "HUMID", C_LABEL, tbg,
-                              &CaskaydiaCoveNF_18);
-        int thy = SEC_TH_Y + 24;
-
-        // temp number + degree C
-        const tChar *deg = font_find(&CaskaydiaCoveNF_18, 0xc2b0);
-        fmt1d_str(nbuf, "", g_temp_c, "");
-        int tx = MARGIN_L + 2;
-        st_draw_string_withbg(tx, thy, nbuf, tfg, tbg, &CaskaydiaCoveNF_18);
-        tx += str_width(nbuf, &CaskaydiaCoveNF_18);
-        if (deg) {
-            draw_ch(tx, thy, deg, tfg, tbg);
-            tx += deg->char_width;
+        if (ta && blink) {
+            if (blink != g_prev_blink)
+                draw_alert_msg(STRIPE_W, SEC_TH_Y, 172 - STRIPE_W, SEC_TH_H,
+                               g_temp_c > ALERT_TEMP_HIGH ? "HIGH TEMP"
+                                                          : "LOW TEMP",
+                               C_ALERT, ALERT_FONT);
+        } else {
+            if (ta && blink != g_prev_blink)
+                st_fill_rect(STRIPE_W, SEC_TH_Y, 172 - STRIPE_W, SEC_TH_H, tbg);
+            st_draw_string_withbg(MARGIN_L, SEC_TH_Y + 2, "TEMP", C_LABEL, tbg,
+                                  &CaskaydiaCoveNF_18);
+            st_draw_string_withbg(90, SEC_TH_Y + 2, "HUMID", C_LABEL, tbg,
+                                  &CaskaydiaCoveNF_18);
+            int thy = SEC_TH_Y + 24;
+            const tChar *deg = font_find(&CaskaydiaCoveNF_18, 0xc2b0);
+            fmt1d_str(nbuf, "", g_temp_c, "");
+            int tx = MARGIN_L + 2;
+            st_draw_string_withbg(tx, thy, nbuf, tfg, tbg, &CaskaydiaCoveNF_18);
+            tx += str_width(nbuf, &CaskaydiaCoveNF_18);
+            if (deg) {
+                draw_ch(tx, thy, deg, tfg, tbg);
+                tx += deg->char_width;
+            }
+            st_draw_string_withbg(tx, thy, "C", tfg, tbg, &CaskaydiaCoveNF_18);
+            fmt1d_str(nbuf, "", g_hum_pct, "%");
+            st_draw_string_withbg(90, thy, nbuf, C_TEMP, tbg,
+                                  &CaskaydiaCoveNF_18);
         }
-        st_draw_string_withbg(tx, thy, "C", tfg, tbg, &CaskaydiaCoveNF_18);
-        fmt1d_str(nbuf, "", g_hum_pct, "%");
-        st_draw_string_withbg(90, thy, nbuf, C_TEMP, tbg, &CaskaydiaCoveNF_18);
     }
+
+    g_prev_blink = blink;
 }
 
 #else
