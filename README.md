@@ -29,10 +29,11 @@ Free/Libre and open-source firmware for the **FRME-PM-01A** power meter.
 
 ### Portrait / Landscape
 
-<p align="center">
-  <img src="pics/portrait.webp" width="45%" alt="Portrait" />
-  <img src="pics/frappe.webp"   width="45%" alt="Landscape (Frappé)" />
-</p>
+Both orientations support 180° flip for flexible panel mounting.
+
+| Portrait | Landscape |
+|----------|-----------|
+| <img src="pics/portrait.webp" width="320" alt="Portrait" /> | <img src="pics/frappe.webp" width="320" alt="Landscape (Frappé)" /> |
 
 ### Color themes
 
