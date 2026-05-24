@@ -38,11 +38,17 @@ static void _st_delay_ms(uint32_t ms) {
 uint16_t st_tftwidth = 172;
 uint16_t st_tftheight = 320;
 
+/* Runtime offsets — swapped by st_rotate_display when MV is active.
+   Portrait: x_off=34 (CASET=col dim), y_off=0  (RASET=row dim)
+   Landscape (MV set): x_off=0  (CASET=row dim), y_off=34 (RASET=col dim) */
+uint16_t st_x_off = ST_X_OFFSET;
+uint16_t st_y_off = ST_Y_OFFSET;
+
 void st_set_address_window(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-    uint16_t xs = x1 + ST_X_OFFSET;
-    uint16_t xe = x2 + ST_X_OFFSET;
-    uint16_t ys = y1 + ST_Y_OFFSET;
-    uint16_t ye = y2 + ST_Y_OFFSET;
+    uint16_t xs = x1 + st_x_off;
+    uint16_t xe = x2 + st_x_off;
+    uint16_t ys = y1 + st_y_off;
+    uint16_t ye = y2 + st_y_off;
 
     _st_write_command_8bit(ST7789_CASET);
 
@@ -389,31 +395,31 @@ void st_rotate_display(uint8_t rotation) {
 
     switch (rotation) {
     case 0:
-        // Portrait: 172 wide, 320 tall
+        // Portrait: 172×320
         _st_write_data_8bit(ST7789_MADCTL_RGB);
-        st_tftwidth = 172;
-        st_tftheight = 320;
+        st_tftwidth  = 172; st_tftheight = 320;
+        st_x_off = ST_X_OFFSET; st_y_off = ST_Y_OFFSET;
         break;
     case 1:
-        // Landscape 1: 320 wide, 172 tall
+        // Portrait 180°: 172×320  (MX|MY, no MV — row/col not swapped)
         _st_write_data_8bit(ST7789_MADCTL_MX | ST7789_MADCTL_MY |
                             ST7789_MADCTL_RGB);
-        st_tftwidth = 320;
-        st_tftheight = 172;
+        st_tftwidth  = 172; st_tftheight = 320;
+        st_x_off = ST_X_OFFSET; st_y_off = ST_Y_OFFSET;
         break;
     case 2:
-        // Portrait inverted
+        // Landscape (MV): 320×172  (MY|MV)
         _st_write_data_8bit(ST7789_MADCTL_MY | ST7789_MADCTL_MV |
                             ST7789_MADCTL_RGB);
-        st_tftwidth = 172;
-        st_tftheight = 320;
+        st_tftwidth  = 320; st_tftheight = 172;
+        st_x_off = ST_Y_OFFSET; st_y_off = ST_X_OFFSET;  /* swap for MV */
         break;
     case 3:
-        // Landscape 2
+        // Landscape (MV): 320×172  (MX|MV)
         _st_write_data_8bit(ST7789_MADCTL_MX | ST7789_MADCTL_MV |
                             ST7789_MADCTL_RGB);
-        st_tftwidth = 320;
-        st_tftheight = 172;
+        st_tftwidth  = 320; st_tftheight = 172;
+        st_x_off = ST_Y_OFFSET; st_y_off = ST_X_OFFSET;  /* swap for MV */
         break;
     }
 }

@@ -244,6 +244,8 @@ SOFTWARE.
 
 extern uint16_t st_tftwidth;
 extern uint16_t st_tftheight;
+extern uint16_t st_x_off;
+extern uint16_t st_y_off;
 
 /*
  * inline function to send 8 bit command to the display
