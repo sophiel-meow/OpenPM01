@@ -13,11 +13,36 @@ Free/Libre and open-source firmware for the **FRME-PM-01A** power meter.
 - Real-time voltage, current, power, coulomb counter (mAh), temperature, and
   humidity
 - Coulomb integration via trapezoidal rule
-- Visual alerts for under/over-voltage, over-current, and temperature limits
-- Five-section portrait UI with
-  [Catppuccin](https://github.com/catppuccin/catppuccin) color themes (Mocha /
+- Battery state-of-charge gauge (voltage-to-percentage lookup with progress bar,
+  low-voltage warning)
+- Visual alerts (blinking) for under/over-voltage, over-current, and temperature
+  limits
+- High refresh rate
+- Four orientation modes: portrait, portrait 180° flipped, landscape,
+  landscape flipped
+- Built on [libopencm3](https://github.com/libopencm3/libopencm3) — no STM32
+  HAL, no proprietary blobs, fully free-software stack
+- [Catppuccin](https://github.com/catppuccin/catppuccin) color themes (Mocha /
   Macchiato / Frappé / Latte)
-- Landscape mode support (`-DUI_LANDSCAPE`, coming soon)
+
+## Screenshots
+
+### Portrait / Landscape
+
+<p align="center">
+  <img src="pics/portrait.webp" width="45%" alt="Portrait" />
+  <img src="pics/frappe.webp"   width="45%" alt="Landscape (Frappé)" />
+</p>
+
+### Color themes
+
+| Mocha | Macchiato |
+|-------|-----------|
+| <img src="pics/mocha.webp"     width="320" alt="Mocha" /> | <img src="pics/macchiato.webp" width="320" alt="Macchiato" /> |
+
+| Frappé | Latte |
+|--------|-------|
+| <img src="pics/frappe.webp"    width="320" alt="Frappé" /> | <img src="pics/latte.webp"     width="320" alt="Latte" /> |
 
 ## Build
 
@@ -29,8 +54,18 @@ platformio run
 platformio run --target upload
 ```
 
-To select a color theme, add one of the following to `build_flags` in
-`platformio.ini` (default: Mocha):
+### Orientation
+
+Pick exactly one orientation flag in `build_flags` (default: `UI_PORTRAIT`):
+
+```ini
+-DUI_PORTRAIT           # portrait
+-DUI_PORTRAIT_FLIP      # portrait 180° flipped
+-DUI_LANDSCAPE          # landscape
+-DUI_LANDSCAPE_FLIP     # landscape flipped
+```
+
+### Color theme
 
 ```ini
 -DCATPPUCCIN_MOCHA
@@ -38,6 +73,18 @@ To select a color theme, add one of the following to `build_flags` in
 -DCATPPUCCIN_FRAPPE
 -DCATPPUCCIN_LATTE
 ```
+
+### Battery gauge
+
+Enabled by default with 4S LiFePO₄ profile. Switch profile or disable:
+
+```ini
+-DBATTERY_4S_LIFEPO4    # 4S LiFePO₄ (default, can be omitted)
+-DNO_BATTERY            # disable battery gauge entirely
+```
+
+Add new battery profiles by adding an `#elif` block in `common.h` that defines
+`bat_lut`, `BAT_LUT_LEN`, and `BAT_LO_V`.
 
 ## Pin Map
 
