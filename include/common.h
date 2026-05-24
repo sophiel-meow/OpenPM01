@@ -13,7 +13,7 @@
 // task periods (ms)
 #define INA226_PERIOD_MS 35
 #define SHT30_PERIOD_MS 2000
-#define UI_PERIOD_MS 100
+#define UI_PERIOD_MS 50
 
 // alert thresholds
 #define ALERT_VOLTAGE_LOW 5.0f
