@@ -134,6 +134,7 @@ void ui_init(void) {
 #define SEC_TH_H 48
 
 static bool g_prev_va, g_prev_ia, g_prev_ta, g_prev_valid;
+static bool g_prev_mah = true;
 
 void ui_draw(void) {
     char nbuf[16];
@@ -227,7 +228,12 @@ void ui_draw(void) {
         st_draw_string_withbg(MARGIN_L, SEC_CHARGE_Y + 2, "CHARGE", C_LABEL,
                               C_BG, &CaskaydiaCoveNF_18);
         int chgy = SEC_CHARGE_Y + SEC_CHARGE_H - 32 + 1;
-        if (g_coulomb_mah < 1000.0f && g_coulomb_mah > -1000.0f) {
+        bool mah = (g_coulomb_mah < 1000.0f && g_coulomb_mah > -1000.0f);
+        if (mah != g_prev_mah) {
+            st_fill_rect(STRIPE_W, chgy, 172 - STRIPE_W, 32, C_BG);
+            g_prev_mah = mah;
+        }
+        if (mah) {
             fmt2(nbuf, g_coulomb_mah);
             draw_val_unit(nbuf, C_UNIT, C_BG, &CaskaydiaCoveNF_26, "mAh",
                           C_UNIT, C_BG, &CaskaydiaCoveNF_18, chgy);
