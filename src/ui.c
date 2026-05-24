@@ -259,7 +259,7 @@ void ui_draw(void) {
             ta ? (g_temp_c > ALERT_TEMP_HIGH ? "TEMP HI" : "TEMP LO") : "TEMP";
         st_draw_string_withbg(MARGIN_L, SEC_TH_Y + 2, tlbl, C_LABEL, tbg,
                               &CaskaydiaCoveNF_18);
-        st_draw_string_withbg(90, SEC_TH_Y + 2, "HUMID", C_LABEL, C_BG,
+        st_draw_string_withbg(90, SEC_TH_Y + 2, "HUMID", C_LABEL, tbg,
                               &CaskaydiaCoveNF_18);
         int thy = SEC_TH_Y + 24;
 
@@ -275,7 +275,7 @@ void ui_draw(void) {
         }
         st_draw_string_withbg(tx, thy, "C", tfg, tbg, &CaskaydiaCoveNF_18);
         fmt1d_str(nbuf, "", g_hum_pct, "%");
-        st_draw_string_withbg(90, thy, nbuf, C_TEMP, C_BG, &CaskaydiaCoveNF_18);
+        st_draw_string_withbg(90, thy, nbuf, C_TEMP, tbg, &CaskaydiaCoveNF_18);
     }
 }
 
