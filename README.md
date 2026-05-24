@@ -33,7 +33,7 @@ Both orientations support 180° flip for flexible panel mounting.
 
 | Portrait | Landscape |
 |----------|-----------|
-| <img src="pics/portrait.webp" width="320" alt="Portrait" /> | <img src="pics/frappe.webp" width="320" alt="Landscape (Frappé)" /> |
+| <img src="pics/portrait.webp" height="400" alt="Portrait" /> | <img src="pics/frappe.webp" height="400" alt="Landscape (Frappé)" /> |
 
 ### Color themes
 
