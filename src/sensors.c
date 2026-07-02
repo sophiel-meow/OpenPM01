@@ -40,8 +40,9 @@ void sensors_ina226_tick(uint32_t now) {
         g_power = 0.0f;
         g_current_valid = false;
     } else {
-        g_power = g_voltage * g_current;
-        g_coulomb += g_current * dt_s * (1000.0f / 3600.0f);
+        float current_abs = g_current < 0.0f ? -g_current : g_current;
+        g_power = g_voltage * current_abs;
+        g_coulomb += current_abs * dt_s * (1000.0f / 3600.0f);
         g_current_valid = true;
     }
 }
